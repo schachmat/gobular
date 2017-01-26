@@ -154,7 +154,7 @@ func (t *Table) Render() (lines []string, err error) {
 	for i, w := range colWidths {
 		// calculate final column widths
 		if minWidths[i] > maxWidths[i] {
-			return nil, fmt.Errorf("Unable to render table: WidthMax < WidthMin for column :d (zero based)", i)
+			return nil, fmt.Errorf("Unable to render table: WidthMax < WidthMin for column %d (zero based)", i)
 		}
 		if w > maxWidths[i] {
 			w = maxWidths[i]
