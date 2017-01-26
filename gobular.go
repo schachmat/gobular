@@ -1,6 +1,7 @@
 package gobular
 
 import (
+	"strings"
 	"bytes"
 	"fmt"
 	"math"
@@ -193,5 +194,54 @@ func (t *Table) Render() (lines []string, err error) {
 
 	buf.WriteString("bla")
 	lines = append(lines, buf.String())
+	return
+}
+
+//TODO: should we replace s parameter with printf interface?
+func fitPad(mustLen uint32, align HorizontalAlignment, s string) (ret string) {
+	ret = s
+	reallen := realLen(s)
+	delta := int(mustLen) - int(reallen)
+	if delta > 0 {
+		if HAlignRight == align {
+			ret = "\033[0m" + strings.Repeat(" ", int(delta)) + ret
+		} else if HAlignCenter == align {
+			ret = "\033[0m" + strings.Repeat(" ", delta/2) + ret + "\033[0m"
+			ret += strings.Repeat(" ", int(math.Ceil(float64(delta)/2)))
+		} else {
+			ret += "\033[0m" + strings.Repeat(" ", int(delta))
+		}
+	} else if delta < 0 {
+		toks := ansiEsc.Split(s, 2)
+		tokLen := uint32(rw.StringWidth(toks[0]))
+		if tokLen > mustLen {
+			trimmedTok := toks[0]
+			if HAlignRight == align {
+				for i, _ := range trimmedTok {
+					newTry := trimmedTok[i:len(trimmedTok)]
+					delta2 := int(mustLen) - rw.StringWidth(newTry)
+					if 0 == delta2 {
+						trimmedTok = newTry
+						break
+					} else if 0 < delta2 {
+						trimmedTok = strings.Repeat(" ", delta2) + newTry
+						break
+					}
+				}
+			} else if HAlignCenter == align {
+				for i, _ := range trimmedTok {
+					newTry := trimmedTok[i:len(trimmedTok)]
+					if int(tokLen + mustLen) / 2 >= rw.StringWidth(newTry) {
+						trimmedTok = newTry
+						break
+					}
+				}
+			}
+			ret = fmt.Sprintf("%.*s\033[0m", mustLen, trimmedTok)
+		} else {
+			esc := ansiEsc.FindString(s)
+			ret = fmt.Sprintf("%s%s%s", toks[0], esc, fitPad(mustLen-tokLen, align, toks[1]))
+		}
+	}
 	return
 }
