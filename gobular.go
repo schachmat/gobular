@@ -151,6 +151,7 @@ func (t *Table) Render() (lines []string, err error) {
 		}
 	}
 
+	tablewidth := uint32(rw.RuneWidth(t.GridVBar))
 	for i, w := range colWidths {
 		// calculate final column widths
 		if minWidths[i] > maxWidths[i] {
@@ -174,9 +175,22 @@ func (t *Table) Render() (lines []string, err error) {
 				return nil, fmt.Errorf("Unable to render table: Column %d (zero based) has odd width enforced, but we need an even width due to grid character widths", i)
 			}
 		}
+
+		tablewidth += w + uint32(rw.RuneWidth(t.GridVBar))
 	}
 
-	//TODO: continue here
+	if 0 == len(t.Rows) || 0 == len(colWidths) || 0 != len(colWidths) % 2 {
+		t.EmbedCaption = false
+	}
+	capLen := uint32(realLen(t.Caption))
+	capWidth := uint32(capLen + 2 * uint32(rw.RuneWidth(t.GridVBar)))
+	if 0 != capLen % 2 {
+		capLen++
+		capWidth++
+	}
+	if t.Caption != "" {
+	} //TODO: continue here
+
 	buf.WriteString("bla")
 	lines = append(lines, buf.String())
 	return
