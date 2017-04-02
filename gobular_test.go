@@ -5,7 +5,7 @@ import (
 )
 
 //TODO: make colored test cases
-func testFit(mustLen uint32, align HorizontalAlignment, s string) string {
+func testFit(mustLen uint32, align Alignment, s string) string {
 	return ansiEsc.ReplaceAllLiteralString(fitPad(mustLen, align, s), "")
 }
 

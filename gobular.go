@@ -48,7 +48,7 @@ type Cell struct {
 	// The WidthMin and WidthMax properties of cells with ColSpan > 1 will be
 	// ignoered. Setting restrictions for such cells is not possible currently.
 	ColSpan uint
-	HAlign  HorizontalAlignment
+	HAlign  Alignment
 
 	WidthMin uint32
 	WidthMax uint32
@@ -57,10 +57,10 @@ type Cell struct {
 	ignore bool
 }
 
-type HorizontalAlignment int
+type Alignment int
 
 const (
-	HAlignLeft HorizontalAlignment = iota
+	HAlignLeft Alignment = iota
 	HAlignCenter
 	HAlignRight
 )
@@ -197,8 +197,8 @@ func (t *Table) Render() (lines []string, err error) {
 	return
 }
 
-//TODO: should we replace s parameter with printf interface?
-func fitPad(mustLen uint32, align HorizontalAlignment, s string) (ret string) {
+func fitPad(mustLen uint32, align Alignment, format string, a ...interface{}) (ret string) {
+	s := fmt.Sprintf(format, a...)
 	ret = s
 	realLen := outLen(s)
 	delta := int(mustLen) - int(realLen)
