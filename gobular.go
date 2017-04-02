@@ -92,7 +92,7 @@ func (s *Setup) check(embedCaption bool) bool {
 		(!embedCaption || rw.RuneWidth(s.GridHBar) == rw.RuneWidth(s.GridVBar))
 }
 
-func realLen(s string) uint32 {
+func outLen(s string) uint32 {
 	return uint32(rw.StringWidth(ansiEsc.ReplaceAllLiteralString(s, "")))
 }
 
@@ -125,7 +125,7 @@ func (t *Table) Render() (lines []string, err error) {
 			// find maximum content length in this cell
 			maxContentWidth := uint32(0)
 			for _, line := range cell.Content {
-				if linelen := realLen(line); linelen > maxContentWidth {
+				if linelen := outLen(line); linelen > maxContentWidth {
 					maxContentWidth = linelen
 				}
 			}
@@ -183,7 +183,7 @@ func (t *Table) Render() (lines []string, err error) {
 	if 0 == len(t.Rows) || 0 == len(colWidths) || 0 != len(colWidths)%2 {
 		t.EmbedCaption = false
 	}
-	capLen := uint32(realLen(t.Caption))
+	capLen := uint32(outLen(t.Caption))
 	capWidth := uint32(capLen + 2*uint32(rw.RuneWidth(t.GridVBar)))
 	if 0 != capLen%2 {
 		capLen++
@@ -200,8 +200,8 @@ func (t *Table) Render() (lines []string, err error) {
 //TODO: should we replace s parameter with printf interface?
 func fitPad(mustLen uint32, align HorizontalAlignment, s string) (ret string) {
 	ret = s
-	reallen := realLen(s)
-	delta := int(mustLen) - int(reallen)
+	realLen := outLen(s)
+	delta := int(mustLen) - int(realLen)
 	if delta > 0 {
 		if HAlignRight == align {
 			ret = "\033[0m" + strings.Repeat(" ", int(delta)) + ret
