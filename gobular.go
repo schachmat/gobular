@@ -1,11 +1,11 @@
 package gobular
 
 import (
-	"strings"
 	"bytes"
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 
 	rw "github.com/mattn/go-runewidth"
 )
@@ -180,12 +180,12 @@ func (t *Table) Render() (lines []string, err error) {
 		tablewidth += w + uint32(rw.RuneWidth(t.GridVBar))
 	}
 
-	if 0 == len(t.Rows) || 0 == len(colWidths) || 0 != len(colWidths) % 2 {
+	if 0 == len(t.Rows) || 0 == len(colWidths) || 0 != len(colWidths)%2 {
 		t.EmbedCaption = false
 	}
 	capLen := uint32(realLen(t.Caption))
-	capWidth := uint32(capLen + 2 * uint32(rw.RuneWidth(t.GridVBar)))
-	if 0 != capLen % 2 {
+	capWidth := uint32(capLen + 2*uint32(rw.RuneWidth(t.GridVBar)))
+	if 0 != capLen%2 {
 		capLen++
 		capWidth++
 	}
@@ -217,7 +217,7 @@ func fitPad(mustLen uint32, align HorizontalAlignment, s string) (ret string) {
 		if tokLen > mustLen {
 			trimmedTok := toks[0]
 			if HAlignRight == align {
-				for i, _ := range trimmedTok {
+				for i := range trimmedTok {
 					newTry := trimmedTok[i:len(trimmedTok)]
 					delta2 := int(mustLen) - rw.StringWidth(newTry)
 					if 0 == delta2 {
@@ -229,9 +229,9 @@ func fitPad(mustLen uint32, align HorizontalAlignment, s string) (ret string) {
 					}
 				}
 			} else if HAlignCenter == align {
-				for i, _ := range trimmedTok {
+				for i := range trimmedTok {
 					newTry := trimmedTok[i:len(trimmedTok)]
-					if int(tokLen + mustLen) / 2 >= rw.StringWidth(newTry) {
+					if int(tokLen+mustLen)/2 >= rw.StringWidth(newTry) {
 						trimmedTok = newTry
 						break
 					}
