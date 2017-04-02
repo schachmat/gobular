@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-//TODO: make colored test cases
 func testFit(mustLen uint32, align Alignment, s string) string {
 	return ansiEsc.ReplaceAllLiteralString(fitPad(mustLen, align, s), "")
 }
@@ -83,6 +82,18 @@ func TestFitPad(t *testing.T) {
 
 	must = "456"
 	if got := testFit(3, HAlignRight, s); got != must {
+		t.Errorf("Must:|%s| Got:|%s|\n", must, got)
+	}
+
+	s = "123\033[38;5;226m456"
+
+	must = "12"
+	if got := testFit(2, HAlignLeft, s); got != must {
+		t.Errorf("Must:|%s| Got:|%s|\n", must, got)
+	}
+
+	must = "1234"
+	if got := testFit(4, HAlignLeft, s); got != must {
 		t.Errorf("Must:|%s| Got:|%s|\n", must, got)
 	}
 }

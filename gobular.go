@@ -204,9 +204,9 @@ func fitPad(mustLen uint32, align Alignment, format string, a ...interface{}) (r
 	delta := int(mustLen) - int(realLen)
 	if delta > 0 {
 		if HAlignRight == align {
-			ret = "\033[0m" + strings.Repeat(" ", int(delta)) + ret
+			ret = strings.Repeat(" ", int(delta)) + ret + "\033[0m"
 		} else if HAlignCenter == align {
-			ret = "\033[0m" + strings.Repeat(" ", delta/2) + ret + "\033[0m"
+			ret = strings.Repeat(" ", delta/2) + ret + "\033[0m"
 			ret += strings.Repeat(" ", int(math.Ceil(float64(delta)/2)))
 		} else {
 			ret += "\033[0m" + strings.Repeat(" ", int(delta))
@@ -240,7 +240,7 @@ func fitPad(mustLen uint32, align Alignment, format string, a ...interface{}) (r
 			ret = fmt.Sprintf("%.*s\033[0m", mustLen, trimmedTok)
 		} else {
 			esc := ansiEsc.FindString(s)
-			ret = fmt.Sprintf("%s%s%s", toks[0], esc, fitPad(mustLen-tokLen, align, toks[1]))
+			ret = fmt.Sprintf("%s%s%s\033[0m", toks[0], esc, fitPad(mustLen-tokLen, align, toks[1]))
 		}
 	}
 	return
