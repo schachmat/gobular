@@ -230,7 +230,7 @@ func fitPad2(mustLen uint32, align Alignment, format string, a ...interface{}) s
 			if tokLen >= mustLen {
 				// last token needs to be trimmed. cut one rune, check, repeat.
 				for i := range lastTok {
-					newTry := lastTok[i:len(lastTok)]
+					newTry := lastTok[i:]
 					delta2 := int(mustLen) - int(outLen(newTry))
 					if 0 == delta2 {
 						return esc + newTry
