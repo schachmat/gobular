@@ -197,51 +197,79 @@ func (t *Table) Render() (lines []string, err error) {
 	return
 }
 
-func fitPad(mustLen uint32, align Alignment, format string, a ...interface{}) (ret string) {
+func fitPad2(mustLen uint32, align Alignment, format string, a ...interface{}) string {
 	s := fmt.Sprintf(format, a...)
-	ret = s
 	realLen := outLen(s)
 	delta := int(mustLen) - int(realLen)
 	if delta > 0 {
+		// need padding
 		if HAlignRight == align {
-			ret = strings.Repeat(" ", int(delta)) + ret + "\033[0m"
+			return strings.Repeat(" ", int(delta)) + s
 		} else if HAlignCenter == align {
-			ret = strings.Repeat(" ", delta/2) + ret + "\033[0m"
-			ret += strings.Repeat(" ", int(math.Ceil(float64(delta)/2)))
-		} else {
-			ret += "\033[0m" + strings.Repeat(" ", int(delta))
+			ret := strings.Repeat(" ", delta/2) + s
+			return ret + strings.Repeat(" ", int(math.Ceil(float64(delta)/2)))
 		}
+
+		// Left alignment is the default
+		return s + strings.Repeat(" ", int(delta))
 	} else if delta < 0 {
-		toks := ansiEsc.Split(s, 2)
-		tokLen := uint32(rw.StringWidth(toks[0]))
-		if tokLen > mustLen {
-			trimmedTok := toks[0]
-			if HAlignRight == align {
-				for i := range trimmedTok {
-					newTry := trimmedTok[i:len(trimmedTok)]
-					delta2 := int(mustLen) - rw.StringWidth(newTry)
-					if 0 == delta2 {
-						trimmedTok = newTry
-						break
-					} else if 0 < delta2 {
-						trimmedTok = strings.Repeat(" ", delta2) + newTry
-						break
-					}
-				}
-			} else if HAlignCenter == align {
-				for i := range trimmedTok {
-					newTry := trimmedTok[i:len(trimmedTok)]
-					if int(tokLen+mustLen)/2 >= rw.StringWidth(newTry) {
-						trimmedTok = newTry
-						break
-					}
-				}
+		// need trimming
+		if HAlignRight == align {
+			// cut left hand side
+			toks := ansiEsc.Split(s, -1)
+			lastTok := toks[len(toks)-1]
+			tokLen := outLen(lastTok)
+
+			// extract last escape sequence which will be appended in front of
+			// the trimmed return string
+			esc := ""
+			if escs := ansiEsc.FindAllString(s, -1); escs != nil {
+				esc = escs[len(escs)-1]
 			}
-			ret = fmt.Sprintf("%.*s\033[0m", mustLen, trimmedTok)
+
+			if tokLen >= mustLen {
+				// last token needs to be trimmed. cut one rune, check, repeat.
+				for i := range lastTok {
+					newTry := lastTok[i:len(lastTok)]
+					delta2 := int(mustLen) - int(outLen(newTry))
+					if 0 == delta2 {
+						return esc + newTry
+					} else if 0 < delta2 {
+						return esc + strings.Repeat(" ", delta2) + newTry
+					}
+				}
+			} else {
+				// last token should be contained completely in return string.
+				// recurse to find the token we need to cut.
+				escLocs := ansiEsc.FindAllStringIndex(s, -1)
+				loc := escLocs[len(escLocs)-1][0]
+				return fitPad2(mustLen-tokLen, align, s[0:loc]) + esc + lastTok
+			}
+		} else if HAlignCenter == align {
+			// first cut left, then cut right
+			rhs := fitPad2(mustLen+uint32(-delta/2), HAlignRight, s)
+			return fitPad2(mustLen, HAlignLeft, rhs)
 		} else {
+			// Left alignment is the default
+			// cut right hand side
+			toks := ansiEsc.Split(s, 2)
+			tokLen := outLen(toks[0])
+			if tokLen >= mustLen {
+				// first token must be trimmed
+				return fmt.Sprintf("%.*s", mustLen, toks[0])
+			}
+
+			// first token should be contained completely in return string.
+			// recurse to find the token we need to cut.
 			esc := ansiEsc.FindString(s)
-			ret = fmt.Sprintf("%s%s%s\033[0m", toks[0], esc, fitPad(mustLen-tokLen, align, toks[1]))
+			return toks[0] + esc + fitPad2(mustLen-tokLen, align, toks[1])
 		}
 	}
-	return
+
+	// perfect length
+	return s
+}
+
+func fitPad(mustLen uint32, align Alignment, format string, a ...interface{}) string {
+	return fitPad2(mustLen, align, format, a...) + "\033[0m"
 }
