@@ -252,6 +252,7 @@ func fitPad2(mustLen uint32, align Alignment, format string, a ...interface{}) s
 		} else {
 			// Left alignment is the default
 			// cut right hand side
+			//TODO: handle double-width runes with padding like for HAlignRight
 			toks := ansiEsc.Split(s, 2)
 			tokLen := outLen(toks[0])
 			if tokLen >= mustLen {
